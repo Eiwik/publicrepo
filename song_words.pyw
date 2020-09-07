@@ -51,7 +51,7 @@ class Database:
         self.create = self.ex("""CREATE TABLE IF NOT EXISTS Songs(
             TITLE VARCHAR(255) NOT NULL,
             LINK VARCHAR(255) NOT NULL,
-            LANGUAGE VARCHAR(255) NOT NULL,
+            LANGUAGE VARCHAR(10) NOT NULL,
             LINKLANG TEXT PRIMARY KEY NOT NULL
         );""")
 
