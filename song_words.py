@@ -6,6 +6,7 @@ from re import findall
 from tkinter import *
 from tkinter import messagebox
 import sqlite3
+import threading
 
 
 def isLink(link):
@@ -17,7 +18,7 @@ def isLink(link):
 def remove_tags(text):
     try:
         return ''.join(xml.etree.ElementTree.fromstring(text).itertext()).replace('*', '')
-    except SyntaxError:
+    except (SyntaxError, ValueError):
         messagebox.showerror("Error", "Not a valid link")
 
 
@@ -25,21 +26,21 @@ class Song:
     def __init__(self, link, lang):
         self.link = link
         self.lang = lang
-        self.name = remove_tags(str(BeautifulSoup(urllib.request.urlopen(self.link), 'lxml').find('h2')))
+        self.name = remove_tags(f"{BeautifulSoup(urllib.request.urlopen(self.link), 'lxml').find('h2')}")
     
 
     def downloadWords(self):
         words = BeautifulSoup(urllib.request.urlopen(self.link), 'lxml').findAll('div', class_=self.lang)
         for i in range(0, len(words)):
-            words[i] = remove_tags((str(words[i])))
-        f = open(f'{self.name + " " + self.lang + ".txt"}', 'w')
-        f.write(f'{self.name}\n\n- - - - -\n')
-        for line in words:
-            f.write(f'{line}\n')
-        f.close()
+            words[i] = remove_tags(f"{words[i]}")
+        with open(f'{self.name + " " + self.lang + ".txt"}', 'w', encoding='utf-8') as f:
+            f.write(f'{self.name}\n\n- - - - -\n')
+            for line in words:
+                f.write(f'{line}\n')
+
 
     def about(self):
-        return f"Song name: {self.name}\nLanguage: {self.lang}\nLink: {self.link}"
+        return f"Language: {self.lang}\nLink: {self.link}"
 
 
 class Database:
@@ -63,13 +64,13 @@ class Database:
                     VALUES(?,?,?,?);""", (title, link, lang, f'{link}{lang}'))
         self.db.commit()
 
+
     def getSongsList(self):
         songsList = self.ex("""SELECT * FROM Songs""").fetchall()
         """for song in songsList:
-            print(f'\nSong Title: {song[0]}\nLanguage: {song[1]}')"""
+            print(f'\nSong Title: {song[0]}\nLanguage: {song[1]}\n')"""
         return songsList
             
-
 
 class Block:
     def __init__(self, master):
@@ -90,18 +91,24 @@ class Block:
     def setFunc(self, func):
         self.b['command'] = eval(f'self.{func}')
 
+
     def showSongsList(self):
         openDatabase = Database()
         songsList = openDatabase.getSongsList()
-        extra_window = Toplevel(master=None, width = '350px')
+        extra_window = Toplevel()
         extra_window.resizable(False, False)
         realtext = ''
-        newText = [f'Song Title: {song[0]}\nLanguage: {song[2]}\n' for song in songsList]
+        newText = [f'Song title: {song[0]}\nLanguage: {song[2]}\n' for song in songsList]
         for songs in newText:
-            realtext+=songs
+            realtext+=f'{songs}\n'
         newLabel = Message(master=extra_window, text=f'{realtext}')
         newLabel.pack()
-    
+
+
+    def tD(self):
+        threading.Thread(target=self.downloadLyrics(), args=(self,)).start()
+
+
     def downloadLyrics(self):
         link = self.e.get()
         lang = self.lb.get(ACTIVE)
@@ -116,10 +123,13 @@ class Block:
         self.showSongsList()
 
 
-root = Tk()
-root.resizable(False, False)
-root.title("Song Parser")
-main_window= Block(root)
-main_window.setFunc('downloadLyrics')
-root.mainloop()
-    
+def main():
+    root = Tk()
+    root.resizable(False, False)
+    root.title("Song Parser")
+    main_window= Block(root)
+    main_window.setFunc('tD')
+    root.mainloop()
+
+if __name__ == '__main__':
+    main()    
