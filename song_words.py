@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import urllib.request
 from re import findall
 from tkinter import *
-from os import startfile
 from tkinter import messagebox
 import sqlite3
 
@@ -49,25 +48,25 @@ class Database:
         self.cursor = self.db.cursor()
         self.ex = self.cursor.execute
         self.create = self.ex("""CREATE TABLE IF NOT EXISTS Songs(
-            ID INTEGER PRIMARY KEY AUTOINCREMENT,
             TITLE VARCHAR(255) NOT NULL,
             LINK VARCHAR(255) NOT NULL,
-            LANGUAGE VARCHAR(255) NOT NULL
-        )""")
+            LANGUAGE VARCHAR(255) NOT NULL,
+            LINKLANG TEXT PRIMARY KEY NOT NULL
+        );""")
 
 
     def insertSong(self, Song):
         title = Song.name
         lang = Song.lang
         link = Song.link
-        self.ex("""INSERT INTO Songs(TITLE, LINK, LANGUAGE)
-                    VALUES(?,?,?);""", (title, link, lang))
+        self.ex("""INSERT OR REPLACE INTO Songs(TITLE, LINK, LANGUAGE, LINKLANG)
+                    VALUES(?,?,?,?);""", (title, link, lang, f'{link}{lang}'))
         self.db.commit()
 
     def getSongsList(self):
         songsList = self.ex("""SELECT * FROM Songs""").fetchall()
-        for song in songsList:
-            print(f'\nSong #{song[0]}\nSong Title: {song[1]}\nSong link: {song[2]}\nLanguage: {song[3]}')
+        """for song in songsList:
+            print(f'\nSong Title: {song[0]}\nLanguage: {song[1]}')"""
         return songsList
             
 
@@ -94,10 +93,10 @@ class Block:
     def showSongsList(self):
         openDatabase = Database()
         songsList = openDatabase.getSongsList()
-        extra_window = Toplevel()
+        extra_window = Toplevel(master=None, width = '350px')
         extra_window.resizable(False, False)
         realtext = ''
-        newText = [f'Song #{song[0]}\nSong Title: {song[1]}\nSong link: {song[2]}\nLanguage: {song[3]}\n' for song in songsList]
+        newText = [f'Song Title: {song[0]}\nLanguage: {song[2]}\n' for song in songsList]
         for songs in newText:
             realtext+=songs
         newLabel = Message(master=extra_window, text=f'{realtext}')
@@ -122,6 +121,5 @@ root.resizable(False, False)
 root.title("Song Parser")
 main_window= Block(root)
 main_window.setFunc('downloadLyrics')
-startfile('https://www.amalgama-lab.com/')
 root.mainloop()
     
