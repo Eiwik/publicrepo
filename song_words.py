@@ -68,6 +68,7 @@ class Database:
         songsList = self.ex("""SELECT * FROM Songs""").fetchall()
         for song in songsList:
             print(f'\nSong #{song[0]}\nSong Title: {song[1]}\nSong link: {song[2]}\nLanguage: {song[3]}')
+        return songsList
             
 
 
@@ -90,7 +91,18 @@ class Block:
     def setFunc(self, func):
         self.b['command'] = eval(f'self.{func}')
 
-
+    def showSongsList(self):
+        openDatabase = Database()
+        songsList = openDatabase.getSongsList()
+        extra_window = Toplevel()
+        extra_window.resizable(False, False)
+        realtext = ''
+        newText = [f'Song #{song[0]}\nSong Title: {song[1]}\nSong link: {song[2]}\nLanguage: {song[3]}\n' for song in songsList]
+        for songs in newText:
+            realtext+=songs
+        newLabel = Message(master=extra_window, text=f'{realtext}')
+        newLabel.pack()
+    
     def downloadLyrics(self):
         link = self.e.get()
         lang = self.lb.get(ACTIVE)
@@ -102,7 +114,7 @@ class Block:
             self.l['text'] = Song(link, lang).about()
         openDatabase = Database()
         openDatabase.insertSong(Song(link, lang))
-        openDatabase.getSongsList()
+        self.showSongsList()
 
 
 root = Tk()
