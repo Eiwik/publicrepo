@@ -75,8 +75,8 @@ class Database:
 class Block:
     def __init__(self, master):
         self.frame = LabelFrame()
-        self.frame.pack(side=LEFT, padx=5, pady=5)
-        self.b = Button(self.frame, text = 'Download')
+        self.frame.pack(side=LEFT, padx=5)
+        self.b = Button(self.frame, text = 'Download', pady=5, padx=33)
         self.e = Entry(self.frame, width=40)
         self.l = Label(self.frame)
         self.lb = Listbox(master, selectmode = EXTENDED)
