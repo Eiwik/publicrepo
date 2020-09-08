@@ -51,7 +51,7 @@ class Database:
         self.create = self.ex("""CREATE TABLE IF NOT EXISTS Songs(
             TITLE VARCHAR(255) NOT NULL,
             LINK VARCHAR(255) NOT NULL,
-            LANGUAGE VARCHAR(10) NOT NULL,
+            LANGUAGE VARCHAR(9) NOT NULL,
             LINKLANG TEXT PRIMARY KEY NOT NULL
         );""")
 
@@ -130,6 +130,7 @@ def main():
     main_window= Block(root)
     main_window.setFunc('tD')
     root.mainloop()
+
 
 if __name__ == '__main__':
     main()    
